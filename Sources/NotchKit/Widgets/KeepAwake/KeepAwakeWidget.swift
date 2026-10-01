@@ -96,7 +96,7 @@ struct KeepAwakeView: View {
             VStack(alignment: .trailing, spacing: 8) {
                 Toggle("Allow display sleep", isOn: $keepAwake.rules.allowDisplaySleep)
                     .help("Keep the system awake but let the screen turn off.")
-                Button("Rules…") { KeepAwakeSettings.show() }
+                Button("Rules…") { SettingsWindow.show(tab: "keepAwake") }
                     .help("Automatic rules, closed-lid mode, Claude Code and the session log")
             }
         }
@@ -110,29 +110,9 @@ struct KeepAwakeView: View {
     }
 }
 
-// MARK: - Rules window
+// MARK: - Rules
 
-/// Shown in its own window for now; it becomes a tab of the Settings window.
-@MainActor
-enum KeepAwakeSettings {
-    private static var window: NSWindow?
-
-    static func show() {
-        if window == nil {
-            let created = NSWindow(contentViewController: NSHostingController(rootView: KeepAwakeSettingsView()))
-            created.title = "Keep Awake"
-            created.styleMask = [.titled, .closable]
-            created.isReleasedWhenClosed = false
-            // Opens on the Space you're in, including over a fullscreen app, instead of back on the desktop.
-            created.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
-            created.center()
-            window = created
-        }
-        NSApp.activate(ignoringOtherApps: true)
-        window?.makeKeyAndOrderFront(nil)
-    }
-}
-
+/// The Keep Awake tab of the Settings window.
 struct KeepAwakeSettingsView: View {
     @Bindable private var keepAwake = KeepAwake.shared
     @State private var newProcess = ""
@@ -223,7 +203,6 @@ struct KeepAwakeSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 520, height: 620)
     }
 
     private func row(_ toggle: some View, remove: @escaping () -> Void) -> some View {

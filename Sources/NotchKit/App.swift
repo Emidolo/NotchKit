@@ -1,5 +1,4 @@
 import AppKit
-import ServiceManagement
 
 @main @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
@@ -12,10 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private var statusItem: NSStatusItem!
-    private let defaults = UserDefaults.standard
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        defaults.register(defaults: ["hoverDelay": 0.15])
+        UserDefaults.standard.register(defaults: ["hoverDelay": 0.15])
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.image = NSImage(systemSymbolName: "rectangle.topthird.inset.filled", accessibilityDescription: "NotchKit")
@@ -23,12 +21,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.delegate = self
         statusItem.menu = menu
 
-        // An accessory app has no menu bar, but ⌘X/⌘C/⌘V/⌘A in the notch's text fields are routed through this menu.
+        // An accessory app has no menu bar, but ⌘X/⌘C/⌘V/⌘A/⌘W in its text fields and windows are routed through this menu.
         let edit = NSMenu(title: "Edit")
         edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
         edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
         edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
         edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        edit.addItem(withTitle: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         let editItem = NSMenuItem()
         editItem.submenu = edit
         NSApp.mainMenu = NSMenu()
@@ -37,16 +36,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NotchController.shared.refresh()
         YouTubeModel.shared.startWatchingClipboard()
         KeepAwake.shared.start()
+        Preferences.shared.applyShortcut()
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(spaceChanged), name: NSWorkspace.activeSpaceDidChangeNotification, object: nil)
 
-        // `open NotchKit.app --args --open [widget id]` starts expanded, for checking a layout without a mouse.
+        // For checking layouts without a mouse:
+        //   open NotchKit.app --args --open [widget id]     starts expanded
+        //   open NotchKit.app --args --settings [tab]       opens Settings
         let arguments = CommandLine.arguments
         if let flag = arguments.firstIndex(of: "--open") {
-            if let id = arguments.dropFirst(flag + 1).first, widgets.contains(where: { $0.id == id }) { NotchController.shared.selected = id }
+            if let id = arguments.dropFirst(flag + 1).first, !id.hasPrefix("--") { NotchController.shared.selected = id }
             NotchController.shared.expand()
         }
-        if arguments.contains("--settings") { KeepAwakeSettings.show() }
+        if let flag = arguments.firstIndex(of: "--settings") {
+            SettingsWindow.show(tab: arguments.dropFirst(flag + 1).first.flatMap { $0.hasPrefix("--") ? nil : $0 })
+        }
     }
 
     func applicationDidChangeScreenParameters(_ notification: Notification) {
@@ -72,23 +76,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NotchController.shared.updateVisibility()
     }
 
-    // MARK: Status menu
+    // MARK: Status menu (the way in on Macs without a notch)
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        menu.addItem(item(NotchController.shared.expanded ? "Close Notch" : "Open Notch", #selector(toggleNotch)))
-        menu.addItem(.separator())
-        menu.addItem(item("Keep Awake Rules…", #selector(showKeepAwakeRules)))
-        menu.addItem(item("Hide in Fullscreen", #selector(toggleHideInFullscreen), on: defaults.bool(forKey: "hideInFullscreen")))
-        menu.addItem(item("Launch at Login", #selector(toggleLaunchAtLogin), on: SMAppService.mainApp.status == .enabled))
+        let open = item(NotchController.shared.expanded ? "Close Notch" : "Open Notch", #selector(toggleNotch))
+        if Preferences.shared.shortcutEnabled, !Preferences.shared.shortcutRefused { open.title += "   " + Preferences.shared.shortcut.label }
+        menu.addItem(open)
+        menu.addItem(item("Settings…", #selector(showSettings)))
         menu.addItem(.separator())
         menu.addItem(item("Quit NotchKit", #selector(NSApplication.terminate(_:)), target: NSApp))
     }
 
-    private func item(_ title: String, _ action: Selector, on: Bool = false, target: AnyObject? = nil) -> NSMenuItem {
+    private func item(_ title: String, _ action: Selector, target: AnyObject? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = target ?? self
-        item.state = on ? .on : .off
         return item
     }
 
@@ -96,24 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NotchController.shared.toggle()
     }
 
-    @objc private func showKeepAwakeRules() {
-        KeepAwakeSettings.show()
-    }
-
-    @objc private func toggleHideInFullscreen() {
-        defaults.set(!defaults.bool(forKey: "hideInFullscreen"), forKey: "hideInFullscreen")
-        NotchController.shared.updateVisibility()
-    }
-
-    @objc private func toggleLaunchAtLogin() {
-        do {
-            if SMAppService.mainApp.status == .enabled {
-                try SMAppService.mainApp.unregister()
-            } else {
-                try SMAppService.mainApp.register()
-            }
-        } catch {
-            NSAlert(error: error).runModal()
-        }
+    @objc private func showSettings() {
+        SettingsWindow.show()
     }
 }

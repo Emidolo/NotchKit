@@ -105,11 +105,8 @@ final class ConverterModel {
     }
 
     func pickOutputDirectory() {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.canCreateDirectories = true
-        if runModal(panel) { outputDirectory = panel.url }
+        if let url = chooseFolder(startingAt: outputDirectory) { outputDirectory = url }
+        NotchController.shared.expand()
     }
 
     // The notch closes when the cursor leaves for the dialog, so bring it back afterwards.

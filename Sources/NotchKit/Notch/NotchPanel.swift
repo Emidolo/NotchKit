@@ -26,7 +26,16 @@ final class NotchController {
     static let shared = NotchController()
 
     private(set) var expanded = false
-    var selected = widgets[0].id
+    /// Id of the widget on show. Falls back to the first visible one when empty or switched off.
+    var selected = ""
+    /// Height of the expanded panel, from Settings.
+    var panelHeight = UserDefaults.standard.object(forKey: "panelHeight") as? Double ?? 160 {
+        didSet {
+            UserDefaults.standard.set(panelHeight, forKey: "panelHeight")
+            place(expanded: expanded)
+        }
+    }
+    var expandedSize: CGSize { CGSize(width: NotchGeometry.expandedWidth, height: panelHeight) }
     /// Notch in screen coordinates. Zero-sized (anchored under the menu bar) on Macs without one.
     private(set) var notch = CGRect.zero
     /// The collapsed notch is widened to make room for widget indicators.
@@ -129,7 +138,7 @@ final class NotchController {
             || (UserDefaults.standard.bool(forKey: "hideInFullscreen") && inFullscreen)
         guard !hidden else { return panel.orderOut(nil) }
         let collapsed = notch.insetBy(dx: ears ? -NotchGeometry.earWidth : 0, dy: 0)
-        panel.setFrame(expanded ? NotchGeometry.expandedRect(around: notch) : collapsed, display: true)
+        panel.setFrame(expanded ? NotchGeometry.expandedRect(around: notch, size: expandedSize) : collapsed, display: true)
         panel.orderFrontRegardless()
     }
 

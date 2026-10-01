@@ -7,10 +7,10 @@ struct NotchView: View {
     var body: some View {
         // Reading the indicators here makes this view follow the widgets' progress.
         // ponytail: first indicator left of the notch, the rest share the right; widen the ears if that gets crowded.
-        let indicators = widgets.compactMap { $0.indicator?() }
+        let indicators = WidgetStore.shared.visible.compactMap { $0.indicator?() }
         let ears = !indicators.isEmpty && !notch.notch.isEmpty
         let collapsed = CGSize(width: notch.notch.width + (ears ? 2 * NotchGeometry.earWidth : 0), height: notch.notch.height)
-        let size = notch.expanded ? NotchGeometry.expandedSize : collapsed
+        let size = notch.expanded ? notch.expandedSize : collapsed
         let radius: CGFloat = notch.expanded ? 24 : 10
         ZStack(alignment: .top) {
             UnevenRoundedRectangle(bottomLeadingRadius: radius, bottomTrailingRadius: radius, style: .continuous)
@@ -47,16 +47,17 @@ private struct ExpandedView: View {
     let notch: NotchController
 
     var body: some View {
-        let current = widgets.first { $0.id == notch.selected } ?? widgets[0]
+        let widgets = WidgetStore.shared.visible
+        let current = widgets.first { $0.id == notch.selected } ?? widgets.first
         VStack(spacing: 0) {
-            // Tabs sit left of the physical notch, the title right of it.
+            // Tabs sit left of the physical notch, the title and settings right of it.
             HStack(spacing: 0) {
                 HStack(spacing: 4) {
                     ForEach(widgets) { widget in
                         Button { notch.selected = widget.id } label: {
                             Image(systemName: widget.icon)
                                 .frame(width: 28, height: 24)
-                                .background(widget.id == current.id ? Color.white.opacity(0.15) : .clear,
+                                .background(widget.id == current?.id ? Color.white.opacity(0.15) : .clear,
                                             in: RoundedRectangle(cornerRadius: 6))
                                 .contentShape(Rectangle())
                         }
@@ -67,18 +68,25 @@ private struct ExpandedView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Color.clear.frame(width: notch.notch.width)
-                Text(current.title)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                HStack(spacing: 8) {
+                    Text(current?.title ?? "NotchKit").font(.caption.weight(.medium)).foregroundStyle(.secondary)
+                    iconButton("gearshape", "Settings") { SettingsWindow.show() }.foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .frame(height: notch.stripHeight)
             .padding(.horizontal, 16)
 
-            current.view()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding([.horizontal, .bottom], 16)
-                .padding(.top, 8)
+            Group {
+                if let current {
+                    current.view()
+                } else {
+                    EmptyHint(icon: "square.grid.2x2", title: "Every widget is switched off", detail: "Turn some back on in Settings.")
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding([.horizontal, .bottom], 16)
+            .padding(.top, 8)
         }
     }
 }

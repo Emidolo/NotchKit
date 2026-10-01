@@ -2,7 +2,7 @@ import CoreGraphics
 
 /// Pure layout maths, kept free of AppKit so it can be tested.
 enum NotchGeometry {
-    static let expandedSize = CGSize(width: 600, height: 160)
+    static let expandedWidth: CGFloat = 600
     /// Width of the strip added on each side of the collapsed notch while a widget shows an indicator.
     static let earWidth: CGFloat = 64
 
@@ -16,9 +16,8 @@ enum NotchGeometry {
     }
 
     /// The expanded panel hangs from the top edge of the notch, centred on it.
-    static func expandedRect(around notch: CGRect) -> CGRect {
-        CGRect(x: notch.midX - expandedSize.width / 2, y: notch.maxY - expandedSize.height,
-               width: expandedSize.width, height: expandedSize.height)
+    static func expandedRect(around notch: CGRect, size: CGSize) -> CGRect {
+        CGRect(x: notch.midX - size.width / 2, y: notch.maxY - size.height, width: size.width, height: size.height)
     }
 
     /// Both rects in CoreGraphics display coordinates (origin top-left).

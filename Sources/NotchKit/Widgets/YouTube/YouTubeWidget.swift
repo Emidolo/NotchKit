@@ -165,6 +165,7 @@ final class YouTubeModel {
         let count = NSPasteboard.general.changeCount
         guard count != lastChangeCount else { return }
         lastChangeCount = count
+        guard WidgetStore.shared.isEnabled(Widget.youTube.id) else { return }
         guard let text = NSPasteboard.general.string(forType: .string), let url = YouTube.link(in: text),
               url != prompt?.url, !downloads.contains(where: { $0.url == url }) else { return }
         offer(url)
@@ -250,13 +251,8 @@ final class YouTubeModel {
     // MARK: Settings
 
     func pickDirectory() {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.canCreateDirectories = true
-        panel.directoryURL = directory
-        NSApp.activate(ignoringOtherApps: true)
-        if panel.runModal() == .OK, let url = panel.url { directory = url }
+        if let url = chooseFolder(startingAt: directory) { directory = url }
+        // The notch closed when the cursor left for the dialog.
         NotchController.shared.expand()
     }
 

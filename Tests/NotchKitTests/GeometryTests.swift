@@ -22,10 +22,11 @@ private let screen = CGRect(x: 0, y: 0, width: 1920, height: 1243)
 }
 
 @Test func expandedPanelHangsFromTheTopCentredOnTheNotch() {
-    let rect = NotchGeometry.expandedRect(around: CGRect(x: 856, y: 1206, width: 208, height: 37))
+    let size = CGSize(width: 600, height: 160)
+    let rect = NotchGeometry.expandedRect(around: CGRect(x: 856, y: 1206, width: 208, height: 37), size: size)
     #expect(rect.midX == 960)
     #expect(rect.maxY == 1243)
-    #expect(rect.size == NotchGeometry.expandedSize)
+    #expect(rect.size == size)
 }
 
 @Test func fullscreenVersusZoomedWindows() {

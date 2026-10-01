@@ -266,7 +266,7 @@ final class KeepAwake {
                 return CGDisplayIsBuiltin(id) == 0
             },
             claude: claudeKeepsAwake)
-        let decision = rules.decide(inputs)
+        let decision = WidgetStore.shared.isEnabled(Widget.keepAwake.id) ? rules.decide(inputs) : (reasons: [], blocked: nil)
         // A manual session stopped by low battery stays stopped, rather than resuming when the charger returns.
         if decision.blocked != nil, manualUntil != nil {
             manualTask?.cancel()
