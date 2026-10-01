@@ -36,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         NotchController.shared.refresh()
         YouTubeModel.shared.startWatchingClipboard()
+        KeepAwake.shared.start()
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(spaceChanged), name: NSWorkspace.activeSpaceDidChangeNotification, object: nil)
 
@@ -45,15 +46,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if let id = arguments.dropFirst(flag + 1).first, widgets.contains(where: { $0.id == id }) { NotchController.shared.selected = id }
             NotchController.shared.expand()
         }
+        if arguments.contains("--settings") { KeepAwakeSettings.show() }
     }
 
     func applicationDidChangeScreenParameters(_ notification: Notification) {
         NotchController.shared.refresh()
     }
 
-    /// Files opened with the app (`open -a NotchKit photo.png`, or dropped on its icon) go to the Converter.
+    func applicationWillTerminate(_ notification: Notification) {
+        KeepAwake.shared.closedLid.revertNow()
+    }
+
+    /// `notchkit://` URLs come from the Claude Code hooks. Files opened with the app
+    /// (`open -a NotchKit photo.png`, or dropped on its icon) go to the Converter.
     func application(_ application: NSApplication, open urls: [URL]) {
-        ConverterModel.shared.add(urls.filter(\.isFileURL))
+        urls.compactMap(ClaudeEvent.init(url:)).forEach(KeepAwake.shared.claudeEvent)
+        let files = urls.filter(\.isFileURL)
+        guard !files.isEmpty else { return }
+        ConverterModel.shared.add(files)
         NotchController.shared.selected = Widget.converter.id
         NotchController.shared.expand()
     }
@@ -68,6 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         menu.addItem(item(NotchController.shared.expanded ? "Close Notch" : "Open Notch", #selector(toggleNotch)))
         menu.addItem(.separator())
+        menu.addItem(item("Keep Awake Rules…", #selector(showKeepAwakeRules)))
         menu.addItem(item("Hide in Fullscreen", #selector(toggleHideInFullscreen), on: defaults.bool(forKey: "hideInFullscreen")))
         menu.addItem(item("Launch at Login", #selector(toggleLaunchAtLogin), on: SMAppService.mainApp.status == .enabled))
         menu.addItem(.separator())
@@ -83,6 +94,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func toggleNotch() {
         NotchController.shared.toggle()
+    }
+
+    @objc private func showKeepAwakeRules() {
+        KeepAwakeSettings.show()
     }
 
     @objc private func toggleHideInFullscreen() {

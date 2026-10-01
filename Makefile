@@ -22,6 +22,7 @@ app: build
 	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
 	lipo -create $(BINS) -output $(APP)/Contents/MacOS/NotchKit
 	cp Resources/Info.plist $(APP)/Contents/Info.plist
+	cp Scripts/claude-hooks.py $(APP)/Contents/Resources/
 	codesign --force --sign - --timestamp=none $(APP)
 
 run: app
