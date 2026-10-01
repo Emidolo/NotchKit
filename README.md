@@ -30,10 +30,23 @@ make test    # unit tests
 
 In Xcode: **File → Open…**, pick `Package.swift`, run the `NotchKit` scheme.
 
-The bundle is ad-hoc signed, so nothing needs configuring. Two consequences:
+The bundle is ad-hoc signed, so nothing needs configuring. macOS may ask again for permissions after a rebuild, because the signature changed.
 
-- macOS may ask again for permissions after a rebuild, because the signature changed.
-- To give it away you need a Developer ID certificate; sign and notarize `build/NotchKit.app` before putting it in a DMG.
+### Releasing
+
+```bash
+make dmg     # build/NotchKit-<version>.dmg: universal (arm64 + x86_64), with an Applications shortcut
+```
+
+Without a certificate the DMG is ad-hoc signed. It works, but Gatekeeper rejects it on other Macs: whoever downloads it has to allow it under System Settings → Privacy & Security → **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/NotchKit.app`.
+
+For a DMG that opens without warnings you need a Developer ID Application certificate (Apple Developer Program) in your keychain, and a notarization profile stored once with `xcrun notarytool store-credentials`:
+
+```bash
+make dmg SIGN="Developer ID Application: Your Name (TEAMID)" NOTARY_PROFILE=your-profile
+```
+
+That signs the app with the hardened runtime (`Resources/NotchKit.entitlements`), signs the DMG, submits it for notarization and staples the ticket.
 
 Run `make install` before turning on **Launch at login**: macOS registers the copy that is running, and it should be the one in `/Applications`.
 
