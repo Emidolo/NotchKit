@@ -11,6 +11,7 @@
 	<key>CFBundleVersion</key><string>1</string>
 	<key>LSMinimumSystemVersion</key><string>14.0</string>
 	<key>LSUIElement</key><true/>
+	<key>NSAppleEventsUsageDescription</key><string>NotchKit controls playback and volume in Spotify and Music.</string>
 	<key>NSHighResolutionCapable</key><true/>
 	<key>NSPrincipalClass</key><string>NSApplication</string>
 </dict>

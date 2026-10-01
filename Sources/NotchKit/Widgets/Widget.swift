@@ -11,4 +11,4 @@ struct Widget: Identifiable {
 }
 
 /// The central widget list. Order here is tab order.
-@MainActor let widgets: [Widget] = [.converter, .youtube, .wallpaper, .keepAwake]
+@MainActor let widgets: [Widget] = [.music, .converter,.youtube, .wallpaper, .keepAwake]
