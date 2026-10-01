@@ -35,6 +35,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NotchController.shared.refresh()
     }
 
+    /// Files opened with the app (`open -a NotchKit photo.png`, or dropped on its icon) go to the Converter.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        ConverterModel.shared.add(urls.filter(\.isFileURL))
+        NotchController.shared.selected = Widget.converter.id
+        NotchController.shared.expand()
+    }
+
     @objc private func spaceChanged() {
         NotchController.shared.updateVisibility()
     }

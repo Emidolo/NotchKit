@@ -59,23 +59,10 @@ enum Player: String, CaseIterable, Identifiable {
 }
 
 /// Runs an AppleScript out of process, so a slow player or a permission prompt never blocks the notch.
-/// Returns trimmed stdout, or nil if the script failed (player refused, or Automation permission denied).
-// ponytail: reads stdout only after exit, fine for these few lines; a chatty tool needs streaming.
+/// Returns stdout, or nil if the script failed (player refused, or Automation permission denied).
 private func osascript(_ source: String) async -> String? {
-    await withCheckedContinuation { continuation in
-        let process = Process()
-        let output = Pipe()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", source]
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        process.terminationHandler = { process in
-            let text = String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-            continuation.resume(returning: process.terminationStatus == 0
-                ? text.trimmingCharacters(in: .whitespacesAndNewlines) : nil)
-        }
-        do { try process.run() } catch { continuation.resume(returning: nil) }
-    }
+    let result = await runTool(URL(fileURLWithPath: "/usr/bin/osascript"), ["-e", source])
+    return result.status == 0 ? result.output : nil
 }
 
 @MainActor @Observable
@@ -177,49 +164,46 @@ struct MusicView: View {
     }
 
     private func nowPlaying(_ player: Player) -> some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 16) {
             Group {
                 if let artwork = model.artwork {
                     Image(nsImage: artwork).resizable().aspectRatio(contentMode: .fill)
                 } else {
-                    Image(systemName: "music.note").font(.system(size: 44)).foregroundStyle(.tertiary)
+                    Image(systemName: "music.note").font(.system(size: 30)).foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity).background(.white.opacity(0.08))
                 }
             }
-            .frame(width: 170, height: 170)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(width: 96, height: 96)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
             .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(model.title.isEmpty ? "Nothing playing" : model.title).font(.title3.weight(.semibold)).lineLimit(1)
-                Text(model.artist).foregroundStyle(.secondary).lineLimit(1)
-                Text(player.rawValue).font(.caption).foregroundStyle(.tertiary)
-                Spacer()
-                HStack(spacing: 28) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(model.title.isEmpty ? "Nothing playing" : model.title).font(.headline).lineLimit(1)
+                Text([model.artist, player.rawValue].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                Spacer(minLength: 0)
+                HStack(spacing: 6) {
                     control("backward.fill", "Previous") { model.send("previous track") }
-                    control(model.isPlaying ? "pause.fill" : "play.fill", model.isPlaying ? "Pause" : "Play", size: 30) {
+                    control(model.isPlaying ? "pause.fill" : "play.fill", model.isPlaying ? "Pause" : "Play", size: 24) {
                         model.send("playpause")
                     }
                     control("forward.fill", "Next") { model.send("next track") }
-                }
-                .frame(maxWidth: .infinity)
-                Spacer()
-                HStack {
+                    Spacer()
                     Image(systemName: "speaker.fill").foregroundStyle(.secondary)
                     Slider(value: Binding(get: { model.volume }, set: { model.setVolume($0) }), in: 0...100)
                         .controlSize(.small)
+                        .frame(width: 150)
                         .accessibilityLabel("\(player.rawValue) volume")
                     Image(systemName: "speaker.wave.3.fill").foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(height: 170)
     }
 
-    private func control(_ icon: String, _ label: String, size: CGFloat = 20, action: @escaping () -> Void) -> some View {
+    private func control(_ icon: String, _ label: String, size: CGFloat = 16, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: size)).frame(width: 44, height: 44).contentShape(Rectangle())
+            Image(systemName: icon).font(.system(size: size)).frame(width: 40, height: 36).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(label)
@@ -227,13 +211,12 @@ struct MusicView: View {
     }
 
     private var idle: some View {
-        VStack {
-            ContentUnavailableView(
-                model.blocked ? "Permission needed" : "No player running",
-                systemImage: model.blocked ? "lock" : "music.note",
-                description: Text(model.blocked
-                    ? "Allow NotchKit to control your music player in System Settings → Privacy & Security → Automation."
-                    : "Open Spotify or Music to control it from here."))
+        VStack(spacing: 6) {
+            EmptyHint(icon: model.blocked ? "lock" : "music.note",
+                      title: model.blocked ? "Permission needed" : "No player running",
+                      detail: model.blocked
+                          ? "Allow NotchKit to control your player in System Settings → Privacy & Security → Automation."
+                          : "Open Spotify or Music to control it from here.")
             if !model.blocked {
                 HStack {
                     ForEach(Player.allCases.filter { $0.appURL != nil }) { player in
@@ -242,6 +225,7 @@ struct MusicView: View {
                         }
                     }
                 }
+                .controlSize(.small)
             }
         }
     }

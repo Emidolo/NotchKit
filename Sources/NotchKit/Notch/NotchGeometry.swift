@@ -2,7 +2,7 @@ import CoreGraphics
 
 /// Pure layout maths, kept free of AppKit so it can be tested.
 enum NotchGeometry {
-    static let expandedSize = CGSize(width: 600, height: 320)
+    static let expandedSize = CGSize(width: 600, height: 160)
 
     /// The notch in global screen coordinates (origin bottom-left), or nil when the screen has none.
     /// `leftAux` / `rightAux` are the widths of NSScreen.auxiliaryTopLeftArea / auxiliaryTopRightArea.

@@ -83,6 +83,9 @@ final class NotchController {
             guard !Task.isCancelled else { return }
             if inside {
                 expand()
+            } else if RunLoop.main.currentMode == .eventTracking {
+                // A menu opened from the panel (or a slider drag) is in progress; look again once it ends.
+                hover(false)
             } else if !panel.frame.insetBy(dx: -1, dy: -1).contains(NSEvent.mouseLocation) {
                 // Exit events also fire when the window resizes under a still cursor; only close if it really left.
                 collapse()

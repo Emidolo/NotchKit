@@ -8,7 +8,7 @@ import SwiftUI
 
     private static func placeholder(_ id: String, _ title: String, _ icon: String, phase: Int) -> Widget {
         Widget(id: id, title: title, icon: icon) {
-            AnyView(ContentUnavailableView(title, systemImage: icon, description: Text("Coming in Phase \(phase)")))
+            AnyView(EmptyHint(icon: icon, title: title, detail: "Coming in Phase \(phase)"))
         }
     }
 }
