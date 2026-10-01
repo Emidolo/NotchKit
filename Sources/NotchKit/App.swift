@@ -39,8 +39,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(spaceChanged), name: NSWorkspace.activeSpaceDidChangeNotification, object: nil)
 
-        // `open NotchKit.app --args --open` starts expanded, for checking the layout without a mouse.
-        if CommandLine.arguments.contains("--open") { NotchController.shared.expand() }
+        // `open NotchKit.app --args --open [widget id]` starts expanded, for checking a layout without a mouse.
+        let arguments = CommandLine.arguments
+        if let flag = arguments.firstIndex(of: "--open") {
+            if let id = arguments.dropFirst(flag + 1).first, widgets.contains(where: { $0.id == id }) { NotchController.shared.selected = id }
+            NotchController.shared.expand()
+        }
     }
 
     func applicationDidChangeScreenParameters(_ notification: Notification) {
