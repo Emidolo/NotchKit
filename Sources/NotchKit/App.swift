@@ -23,7 +23,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.delegate = self
         statusItem.menu = menu
 
+        // An accessory app has no menu bar, but ⌘X/⌘C/⌘V/⌘A in the notch's text fields are routed through this menu.
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        let editItem = NSMenuItem()
+        editItem.submenu = edit
+        NSApp.mainMenu = NSMenu()
+        NSApp.mainMenu?.addItem(editItem)
+
         NotchController.shared.refresh()
+        YouTubeModel.shared.startWatchingClipboard()
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(spaceChanged), name: NSWorkspace.activeSpaceDidChangeNotification, object: nil)
 

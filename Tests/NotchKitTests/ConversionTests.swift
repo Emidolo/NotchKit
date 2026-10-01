@@ -171,6 +171,16 @@ private func samplePNG(in directory: URL, name: String = "sample", width: Int = 
     await run()
     #expect(outputs(model.items[0]) == ["photo.jpg"])
 
+    // WebP goes through cwebp, when it is installed.
+    if Tool.find("cwebp") != nil {
+        model.format = .webp
+        model.maxPixel = "100"
+        await run()
+        #expect(outputs(model.items[0]) == ["photo.webp"])
+        #expect(pixelSize(directory.appendingPathComponent("photo.webp")) == [100, 50])
+        model.maxPixel = ""
+    }
+
     // Image + PDF share "one PDF".
     model.format = .pdf
     await run()

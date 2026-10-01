@@ -3,6 +3,8 @@ import CoreGraphics
 /// Pure layout maths, kept free of AppKit so it can be tested.
 enum NotchGeometry {
     static let expandedSize = CGSize(width: 600, height: 160)
+    /// Width of the strip added on each side of the collapsed notch while a widget shows an indicator.
+    static let earWidth: CGFloat = 36
 
     /// The notch in global screen coordinates (origin bottom-left), or nil when the screen has none.
     /// `leftAux` / `rightAux` are the widths of NSScreen.auxiliaryTopLeftArea / auxiliaryTopRightArea.

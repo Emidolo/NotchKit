@@ -29,6 +29,8 @@ final class NotchController {
     var selected = widgets[0].id
     /// Notch in screen coordinates. Zero-sized (anchored under the menu bar) on Macs without one.
     private(set) var notch = CGRect.zero
+    /// The collapsed notch is widened to make room for widget indicators.
+    private(set) var ears = false
     /// Height of the tab strip that flanks the notch.
     var stripHeight: CGFloat { max(notch.height, 32) }
 
@@ -65,6 +67,21 @@ final class NotchController {
         // The window never covers more than the visible shape, so clicks beside it reach other apps.
         place(expanded: true)
         withAnimation(spring) { expanded = true }
+    }
+
+    /// Opens without a hover (a link was copied) and closes again if the cursor never comes over.
+    func peek() {
+        expand()
+        pending = Task {
+            try? await Task.sleep(for: .seconds(6))
+            guard !Task.isCancelled else { return }
+            if !panel.frame.contains(NSEvent.mouseLocation) { collapse() }
+        }
+    }
+
+    func setEars(_ on: Bool) {
+        ears = on
+        if !expanded { place(expanded: false) }
     }
 
     func collapse() {
@@ -111,7 +128,8 @@ final class NotchController {
         let hidden = (!expanded && notch.isEmpty)
             || (UserDefaults.standard.bool(forKey: "hideInFullscreen") && inFullscreen)
         guard !hidden else { return panel.orderOut(nil) }
-        panel.setFrame(expanded ? NotchGeometry.expandedRect(around: notch) : notch, display: true)
+        let collapsed = notch.insetBy(dx: ears ? -NotchGeometry.earWidth : 0, dy: 0)
+        panel.setFrame(expanded ? NotchGeometry.expandedRect(around: notch) : collapsed, display: true)
         panel.orderFrontRegardless()
     }
 

@@ -2,7 +2,6 @@ import SwiftUI
 
 // Stand-ins so the tab bar is real from Phase 1. Each moves to its own folder when its phase lands.
 @MainActor extension Widget {
-    static let youtube = placeholder("youtube", "YouTube", "arrow.down.circle", phase: 3)
     static let wallpaper = placeholder("wallpaper", "Wallpaper", "photo", phase: 4)
     static let keepAwake = placeholder("keepAwake", "Keep Awake", "cup.and.saucer", phase: 5)
 

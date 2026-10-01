@@ -2,7 +2,9 @@ import AppKit
 import SwiftUI
 
 @MainActor extension Widget {
-    static let converter = Widget(id: "converter", title: "Converter", icon: "arrow.triangle.2.circlepath") {
+    static let converter = Widget(id: "converter", title: "Converter", icon: "arrow.triangle.2.circlepath", indicator: {
+        ConverterModel.shared.progress.map { AnyView(ProgressRing(fraction: $0)) }
+    }) {
         AnyView(ConverterView())
     }
 }
@@ -53,8 +55,22 @@ final class ConverterModel {
     var hasPDF: Bool { items.contains { $0.kind == .pdf } }
     var canConvert: Bool { !formats.isEmpty && items.contains { !$0.isDone } }
 
+    /// Fraction of the list converted so far; nil when nothing is running.
+    var progress: Double? {
+        guard isRunning, !items.isEmpty else { return nil }
+        let done = items.reduce(0.0) { sum, item in
+            switch item.state {
+            case .done: sum + 1
+            case .running(let fraction): sum + (fraction ?? 0)
+            default: sum
+            }
+        }
+        return done / Double(items.count)
+    }
+
     /// A command-line tool this batch needs but that isn't installed, with the Homebrew package that provides it.
     var missingTool: (name: String, package: String)? {
+        _ = ToolInstaller.shared.revision
         if format == .webp { return Tool.find("cwebp") == nil ? ("cwebp", "webp") : nil }
         let needsFFmpeg = items.contains { $0.kind == .video || $0.kind == .audio }
         return needsFFmpeg && Tool.find("ffmpeg") == nil ? ("ffmpeg", "ffmpeg") : nil
@@ -191,7 +207,7 @@ final class ConverterModel {
         }
         guard result.status == 0, !Task.isCancelled else {
             try? FileManager.default.removeItem(at: partial)
-            throw Failure(result.error.components(separatedBy: "\n").last.flatMap { $0.isEmpty ? nil : $0 } ?? "ffmpeg failed")
+            throw Failure(Tool.lastError(result, fallback: "ffmpeg failed"))
         }
         // moveItem refuses to replace an existing file.
         let destination = Conversion.freeURL(in: directory, name: name, ext: format.rawValue)
@@ -271,13 +287,9 @@ struct ConverterView: View {
                     }
                 }
                 if let tool = model.missingTool {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Text("Needs \(tool.name)").font(.caption).foregroundStyle(.orange)
-                        Button("Copy install command") {
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString("brew install \(tool.package)", forType: .string)
-                        }
-                        .help("Copies “brew install \(tool.package)”. Paste it into Terminal, then convert again.")
+                        InstallButton(package: tool.package)
                     }
                 } else if model.format.hasQuality {
                     HStack(spacing: 4) {
@@ -348,13 +360,4 @@ private struct ItemRow: View {
     private var remove: some View {
         iconButton("xmark", "Remove") { model.remove(item) }.disabled(model.isRunning)
     }
-}
-
-@MainActor private func iconButton(_ icon: String, _ label: String, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-        Image(systemName: icon).frame(width: 18, height: 18).contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .help(label)
-    .accessibilityLabel(label)
 }
