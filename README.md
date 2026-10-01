@@ -24,6 +24,7 @@ Requires macOS 14+ and Swift 5.9+ — Xcode or just the Command Line Tools (`xco
 ```bash
 make run     # build build/NotchKit.app and open it
 make app     # build only
+make install # build, copy to /Applications and open that copy
 make test    # unit tests
 ```
 
@@ -34,7 +35,7 @@ The bundle is ad-hoc signed, so nothing needs configuring. Two consequences:
 - macOS may ask again for permissions after a rebuild, because the signature changed.
 - To give it away you need a Developer ID certificate; sign and notarize `build/NotchKit.app` before putting it in a DMG.
 
-Copy `build/NotchKit.app` to `/Applications` before turning on **Launch at login**: macOS registers the copy that is running.
+Run `make install` before turning on **Launch at login**: macOS registers the copy that is running, and it should be the one in `/Applications`.
 
 `NOTCHKIT_NETWORK_TESTS=1 make test` also runs the tests that download a short clip from YouTube.
 

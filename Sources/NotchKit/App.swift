@@ -43,11 +43,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // For checking layouts without a mouse:
         //   open NotchKit.app --args --open [widget id]     starts expanded
         //   open NotchKit.app --args --settings [tab]       opens Settings
+        //   open NotchKit.app --args --launch-at-login      same as switching it on in Settings
         let arguments = CommandLine.arguments
         if let flag = arguments.firstIndex(of: "--open") {
             if let id = arguments.dropFirst(flag + 1).first, !id.hasPrefix("--") { NotchController.shared.selected = id }
             NotchController.shared.expand()
         }
+        if arguments.contains("--launch-at-login") { Preferences.shared.setLaunchAtLogin(true) }
         if let flag = arguments.firstIndex(of: "--settings") {
             SettingsWindow.show(tab: arguments.dropFirst(flag + 1).first.flatMap { $0.hasPrefix("--") ? nil : $0 })
         }

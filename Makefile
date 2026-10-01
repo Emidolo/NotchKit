@@ -9,7 +9,7 @@ CLT_FW = /Library/Developer/CommandLineTools/Library/Developer/Frameworks
 CLT_LIB = /Library/Developer/CommandLineTools/Library/Developer/usr/lib
 TEST_FLAGS = $(if $(wildcard $(CLT_FW)/Testing.framework),-Xswiftc -F$(CLT_FW) -Xlinker -rpath -Xlinker $(CLT_FW) -Xlinker -rpath -Xlinker $(CLT_LIB))
 
-.PHONY: build test app run clean
+.PHONY: build test app run install clean
 
 build:
 	for a in $(ARCHS); do swift build -c $(CONFIG) --arch $$a || exit 1; done
@@ -28,6 +28,14 @@ app: build
 run: app
 	-pkill -x NotchKit
 	open $(APP)
+
+# Replaces the copy in /Applications (the one Launch at Login starts) and opens it.
+install: app
+	-pkill -x NotchKit
+	rm -rf /Applications/NotchKit.app
+	cp -R $(APP) /Applications/NotchKit.app
+	sleep 1
+	open /Applications/NotchKit.app
 
 clean:
 	rm -rf .build build

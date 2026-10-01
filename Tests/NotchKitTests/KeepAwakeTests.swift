@@ -102,8 +102,11 @@ import Testing
     #expect(ClosedLid.installCommand(user: "bad name") == nil)
 }
 
+/// Whether this process holds the assertion (the installed app may hold its own at the same time).
 private func assertionHeld() async -> Bool {
-    await runTool(URL(fileURLWithPath: "/usr/bin/pmset"), ["-g", "assertions"]).output.contains("NotchKit Keep Awake")
+    let mine = "pid \(ProcessInfo.processInfo.processIdentifier)("
+    return await runTool(URL(fileURLWithPath: "/usr/bin/pmset"), ["-g", "assertions"]).output
+        .components(separatedBy: "\n").contains { $0.contains(mine) && $0.contains("NotchKit Keep Awake") }
 }
 
 /// The real engine end to end: power assertion taken and released, session logged, and a running
