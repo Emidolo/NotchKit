@@ -120,3 +120,7 @@ It is built to sit idle: everything is driven by notifications except two timers
 - One Claude status for all sessions: the latest event wins.
 - Process rules match executable names, so a tool running inside another runtime shows up under the runtime's name.
 - Missing tools are installed through Homebrew only.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
