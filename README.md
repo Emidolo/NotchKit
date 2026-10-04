@@ -15,6 +15,8 @@ A native macOS app that lives in the MacBook notch. Hover over the notch (or pre
 - **Wallpaper** — controls [MacWall](https://github.com/Emidolo/MacWall): current wallpaper, previous / next, pause, volume, and a strip of your library. MacWall stays a separate app.
 - **Keep Awake** — keeps the Mac awake until turned off, for a set time, or automatically: while chosen apps or processes run, while this app is converting or downloading, on AC power, with an external display, or while Claude Code is working. Stops on low battery. Optional closed-lid mode.
 
+- **Ask** — type a question, press Return, and the answer streams in. One question at a time, no chat history. Uses the OpenAI API with your own key (Settings → General → Ask), which is stored in the login keychain.
+
 While the notch is closed, small indicators beside it show conversion and download progress, a keep-awake countdown, Claude Code's status, and a pause mark when you paused the wallpaper.
 
 ## Build and run
@@ -100,7 +102,7 @@ The Wallpaper widget needs MacWall with its `macwall://` URL scheme (in MacWall'
 
 Menu bar icon → **Settings…**, or the gear in the open notch.
 
-- **General** — hover delay, panel height, hide over fullscreen apps, the keyboard shortcut (click it and press a new one), launch at login, default folders, clipboard detection.
+- **General** — hover delay, panel height, hide over fullscreen apps, the keyboard shortcut (click it and press a new one), launch at login, default folders, clipboard detection, the OpenAI key and model for Ask.
 - **Widgets** — switch widgets on and off and drag to reorder the tabs.
 - **Keep Awake** — the automatic rules, Claude Code, battery floor, closed-lid mode, recent sessions.
 
@@ -114,7 +116,7 @@ Sources/NotchKit/
   Notch/               the panel over the notch: geometry, window, hover/drop handling, view
   Widgets/
     Widget.swift       the Widget type and WidgetStore.registry, the central list
-    Music/ Converter/ YouTube/ Wallpaper/ KeepAwake/     one folder per widget: view + view model
+    Music/ Converter/ YouTube/ Wallpaper/ KeepAwake/ Ask/     one folder per widget: view + view model
   Shared/              running external tools, the global shortcut
   Settings/            the Settings window
 Scripts/claude-hooks.py

@@ -147,6 +147,8 @@ private struct GeneralSettings: View {
             Section("Clipboard") {
                 Toggle("Offer a download when a YouTube link is copied", isOn: $youTube.detectClipboard)
             }
+
+            Section("Ask") { AskSettings() }
         }
         .formStyle(.grouped)
     }
