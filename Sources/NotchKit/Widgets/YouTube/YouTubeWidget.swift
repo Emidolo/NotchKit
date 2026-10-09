@@ -130,12 +130,9 @@ final class YouTubeModel {
     var detectClipboard = UserDefaults.standard.object(forKey: "clipboardDetection") as? Bool ?? true {
         didSet {
             UserDefaults.standard.set(detectClipboard, forKey: "clipboardDetection")
-            startWatchingClipboard()
+            Clipboard.refresh()
         }
     }
-
-    @ObservationIgnored private var timer: Timer?
-    @ObservationIgnored private var lastChangeCount = 0
 
     /// The running download's progress; nil when idle.
     // ponytail: yt-dlp reports video and audio streams separately, so the ring runs 0→100 twice for a video.
@@ -146,27 +143,10 @@ final class YouTubeModel {
 
     // MARK: Clipboard
 
-    /// Starts or stops the poll to match the setting. Whatever is already on the clipboard is ignored.
-    func startWatchingClipboard() {
-        timer?.invalidate()
-        timer = nil
-        guard detectClipboard else { return }
-        lastChangeCount = NSPasteboard.general.changeCount
-        // The pasteboard has no change notification. One integer compare a second is the cheapest way to follow it.
-        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.checkClipboard() }
-        }
-        timer.tolerance = 0.5
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
-    }
-
-    private func checkClipboard() {
-        let count = NSPasteboard.general.changeCount
-        guard count != lastChangeCount else { return }
-        lastChangeCount = count
-        guard WidgetStore.shared.isEnabled(Widget.youTube.id) else { return }
-        guard let text = NSPasteboard.general.string(forType: .string), let url = YouTube.link(in: text),
+    /// Text landed on the clipboard.
+    func copied(_ text: String) {
+        guard detectClipboard, WidgetStore.shared.isEnabled(Widget.youTube.id) else { return }
+        guard let url = YouTube.link(in: text),
               url != prompt?.url, !downloads.contains(where: { $0.url == url }) else { return }
         offer(url)
         NotchController.shared.selected = Widget.youTube.id

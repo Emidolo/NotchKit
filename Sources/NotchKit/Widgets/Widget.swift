@@ -58,7 +58,7 @@ struct EmptyHint: View {
 final class WidgetStore {
     static let shared = WidgetStore()
     /// The central widget list: everything the app has, in default order. A new widget is added here.
-    static let registry: [Widget] = [.music, .converter, .youTube, .wallpaper, .keepAwake, .ask]
+    static let registry: [Widget] = [.music, .converter, .youTube, .wallpaper, .keepAwake, .ask, .typer]
 
     private(set) var order: [String] { didSet { UserDefaults.standard.set(order, forKey: "widgetOrder") } }
     private(set) var disabled: Set<String> { didSet { UserDefaults.standard.set(Array(disabled), forKey: "disabledWidgets") } }

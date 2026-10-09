@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.mainMenu?.addItem(editItem)
 
         NotchController.shared.refresh()
-        YouTubeModel.shared.startWatchingClipboard()
+        Clipboard.refresh()
         KeepAwake.shared.start()
         Preferences.shared.applyShortcut()
         NSWorkspace.shared.notificationCenter.addObserver(

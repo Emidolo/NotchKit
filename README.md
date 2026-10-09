@@ -16,6 +16,7 @@ A native macOS app that lives in the MacBook notch. Hover over the notch (or pre
 - **Keep Awake** — keeps the Mac awake until turned off, for a set time, or automatically: while chosen apps or processes run, while this app is converting or downloading, on AC power, with an external display, or while Claude Code is working. Stops on low battery. Optional closed-lid mode.
 
 - **Ask** — type a question, press Return, and the answer streams in. One question at a time, no chat history. Uses the OpenAI API with your own key (Settings → General → Ask), which is stored in the login keychain.
+- **Typer** — switch it on, copy text, click where it should go, and three seconds later it is typed there key by key (for fields that refuse paste). Esc stops it. The speed is adjustable.
 
 While the notch is closed, small indicators beside it show conversion and download progress, a keep-awake countdown, Claude Code's status, and a pause mark when you paused the wallpaper.
 
@@ -70,8 +71,9 @@ NotchKit looks in `/opt/homebrew/bin` and `/usr/local/bin`. When a tool is missi
 |---|---|---|
 | "NotchKit wants to control Spotify / Music" | first time the Music widget talks to a player | playback control goes through AppleScript |
 | Administrator password | only if you install the closed-lid helper | see below |
+| Accessibility | first time you switch Typer on | typing into other apps means posting key events |
 
-Nothing else: no Accessibility, no Screen Recording, no Full Disk Access.
+Nothing else: no Screen Recording, no Full Disk Access. An ad hoc signed build (plain `make app`) is a new app to macOS after every rebuild, so Accessibility has to be granted again.
 
 ## Closed-lid mode
 
@@ -116,8 +118,8 @@ Sources/NotchKit/
   Notch/               the panel over the notch: geometry, window, hover/drop handling, view
   Widgets/
     Widget.swift       the Widget type and WidgetStore.registry, the central list
-    Music/ Converter/ YouTube/ Wallpaper/ KeepAwake/ Ask/     one folder per widget: view + view model
-  Shared/              running external tools, the global shortcut
+    Music/ Converter/ YouTube/ Wallpaper/ KeepAwake/ Ask/ Typer/     one folder per widget: view + view model
+  Shared/              running external tools, the global shortcut, the clipboard check
   Settings/            the Settings window
 Scripts/claude-hooks.py
 Tests/NotchKitTests/
@@ -125,7 +127,7 @@ Tests/NotchKitTests/
 
 To add a widget: make a folder with its view and view model, declare `static let myWidget = Widget(id:title:icon:) { AnyView(MyView()) }` in an extension of `Widget`, and add it to `WidgetStore.registry`. Pass `indicator:` to show something beside the closed notch.
 
-It is built to sit idle: everything is driven by notifications except two timers, the clipboard check (one integer compare a second, off when clipboard detection is off) and the process list (every 10 seconds, only while a process rule is on).
+It is built to sit idle: everything is driven by notifications except two timers, the clipboard check (one integer compare a second, off when clipboard detection and Typer are both off) and the process list (every 10 seconds, only while a process rule is on).
 
 ## Known limits
 
