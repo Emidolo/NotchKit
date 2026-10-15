@@ -46,7 +46,8 @@ Filename: "{sys}\sc.exe"; Parameters: "create NotchKitService binPath= ""\""{app
 Filename: "{sys}\sc.exe"; Parameters: "description NotchKitService ""Keeps the PC awake and handles the lid for NotchKit."""; Flags: runhidden
 Filename: "{sys}\net.exe"; Parameters: "start NotchKitService"; Flags: runhidden
 ; As the signed-in user, not elevated: Windows blocks drag and drop from Explorer into an elevated window.
-Filename: "{app}\NotchKit.exe"; Description: "Start NotchKit"; Flags: nowait postinstall skipifsilent runasoriginaluser
+; Also in a silent install (NotchKit-Installer.exe runs Setup with /SILENT), so NotchKit opens at the end either way.
+Filename: "{app}\NotchKit.exe"; Description: "Start NotchKit"; Flags: nowait postinstall runasoriginaluser
 
 [UninstallRun]
 ; Stopping the service lets the PC sleep and puts the lid action back.

@@ -1,0 +1,66 @@
+# Push a tag like v0.1.0 and this builds both installers and publishes them as a GitHub release.
+# The files keep the same names in every release, so the "latest/download" links in the README never change.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Inno Setup if the runner lacks it
+        run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: Build NotchKit-setup.exe
+        run: windows/build-installer.ps1
+      - name: Build NotchKit-Installer.exe
+        run: |
+          dotnet build windows/Installer -c Release -o build/installer
+          Copy-Item build/installer/NotchKit-Installer.exe build/
+          Copy-Item build/NotchKit-*-setup.exe build/NotchKit-setup.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            build/NotchKit-Installer.exe
+            build/NotchKit-setup.exe
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build NotchKit.dmg
+        working-directory: macos
+        run: make dmg && cp build/NotchKit-*.dmg build/NotchKit.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac
+          path: macos/build/NotchKit.dmg
+
+  release:
+    needs: [windows, mac]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/NotchKit-Installer.exe dist/NotchKit-setup.exe dist/NotchKit.dmg \
+            --repo "$GITHUB_REPOSITORY" --title "NotchKit $GITHUB_REF_NAME" --notes "
+          **Windows:** download **NotchKit-Installer.exe** and open it. It downloads NotchKit, installs it and opens it.
+          If Windows says it protected your PC, click **More info → Run anyway**. (NotchKit-setup.exe is the full installer, for PCs without internet.)
+
+          **Mac:** download **NotchKit.dmg**, open it and drag NotchKit to Applications.
+          The first time, allow it in System Settings → Privacy & Security → **Open Anyway**."

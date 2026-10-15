@@ -29,7 +29,9 @@ The Wallpaper widget is macOS only (MacWall is a Mac app).
 
 ## Install
 
-Run `NotchKit-<version>-setup.exe`. It asks for administrator rights (to register the service), installs both exes in `C:\Program Files\NotchKit`, registers and starts `NotchKitService`, adds NotchKit to the Start menu and, if you leave the box ticked, starts it at sign-in. Uninstall it from Settings → Apps; that stops the service first, so sleep and the lid action go back to normal.
+Most people should download [NotchKit-Installer.exe](https://github.com/Emidolo/NotchKit/releases/latest/download/NotchKit-Installer.exe) and open it. It's a few KB: it downloads the latest `NotchKit-setup.exe` from GitHub Releases and runs it silently, so the only question is Windows asking for permission. The downloader is in `Installer/` and targets .NET Framework 4.8, which every Windows 10 and 11 already has.
+
+The full installer, `NotchKit-setup.exe`, can also be run directly (it's in the same release, for PCs without internet). It asks for administrator rights (to register the service), installs both exes in `C:\Program Files\NotchKit`, registers and starts `NotchKitService`, adds NotchKit to the Start menu and, if you leave the box ticked, starts it at sign-in. Uninstall it from Settings → Apps; that stops the service first, so sleep and the lid action go back to normal.
 
 Needs Windows 10 2004 or later, x64. Each exe carries its own .NET runtime, so nothing else has to be installed.
 
