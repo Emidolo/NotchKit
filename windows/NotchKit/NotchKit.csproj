@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- The Windows 10 2004 SDK projection brings the media session, PDF and credential APIs. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <!-- Only for the tray icon and power status. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Lets the project compile on macOS and Linux too; it only runs on Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- Application.ThemeMode (the Fluent dark theme) is marked experimental. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+</Project>

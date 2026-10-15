@@ -52,11 +52,12 @@ private struct ExpandedView: View {
         VStack(spacing: 0) {
             // Tabs sit left of the physical notch, the title and settings right of it.
             HStack(spacing: 0) {
+                // ponytail: tabs narrow to stay clear of the notch, down to 20 pt each; about 8 fit, then it needs a second row or a menu.
                 HStack(spacing: 4) {
                     ForEach(widgets) { widget in
                         Button { notch.selected = widget.id } label: {
                             Image(systemName: widget.icon)
-                                .frame(width: 28, height: 24)
+                                .frame(minWidth: 20, maxWidth: 28, minHeight: 24, maxHeight: 24)
                                 .background(widget.id == current?.id ? Color.white.opacity(0.15) : .clear,
                                             in: RoundedRectangle(cornerRadius: 6))
                                 .contentShape(Rectangle())
