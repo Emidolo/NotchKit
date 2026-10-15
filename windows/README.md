@@ -29,19 +29,25 @@ The Wallpaper widget is macOS only (MacWall is a Mac app).
 
 ## Install
 
-Needs Windows 10 2004 or later, and the [.NET 10 SDK](https://dotnet.microsoft.com/download) to build. From an elevated PowerShell in this folder:
+Run `NotchKit-<version>-setup.exe`. It asks for administrator rights (to register the service), installs both exes in `C:\Program Files\NotchKit`, registers and starts `NotchKitService`, adds NotchKit to the Start menu and, if you leave the box ticked, starts it at sign-in. Uninstall it from Settings → Apps; that stops the service first, so sleep and the lid action go back to normal.
+
+Needs Windows 10 2004 or later, x64. Each exe carries its own .NET runtime, so nothing else has to be installed.
+
+### Building the installer
+
+On Windows, with the [.NET 10 SDK](https://dotnet.microsoft.com/download) and Inno Setup 6 (`winget install JRSoftware.InnoSetup`):
 
 ```powershell
-.\install.ps1
+.\build-installer.ps1       # build\NotchKit-<version>-setup.exe
 ```
 
-That builds both, copies them to `C:\Program Files\NotchKit` and registers and starts the service (`NotchKitService`, automatic start). Then start `NotchKit.exe` from that folder (not as administrator) and turn on **Launch at login** in its Settings. `.\install.ps1 -Uninstall` removes everything.
+The version comes from `NotchKit/NotchKit.csproj`. The installer isn't code-signed, so SmartScreen warns about it on other PCs (**More info → Run anyway**); signing needs a code-signing certificate and `signtool`.
 
 For development, without installing:
 
 ```powershell
 dotnet run --project NotchKit                     # the app
-dotnet run --project NotchKitService              # the service logic, as a console program (run elevated for the lid)
+dotnet run --project NotchKitService              # the service, as a console program (run elevated for the lid)
 dotnet run --project Tests                        # the pure logic, on any OS
 ```
 
