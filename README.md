@@ -19,7 +19,7 @@ The two are separate native apps with the same widgets and settings. They share 
 Push a version tag and [the release workflow](.github/workflows/release.yml) builds both installers on GitHub's machines and publishes them:
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
 | | Files in the release | Built locally with |
